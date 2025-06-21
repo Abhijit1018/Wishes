@@ -57,7 +57,6 @@ coverage.xml
 # Django stuff:
 *.log
 db.sqlite3
-/static/
 
 # Scrapy stuff
 .scrapy
@@ -91,4 +90,4 @@ dmypy.json
 .pyre/
 
 # pytype static analyzer
-.pytype/ 
+.pytype/
