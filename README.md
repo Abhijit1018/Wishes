@@ -47,3 +47,4 @@ To run this project on your local machine, follow these steps:
     ```
 
 Open your web browser and navigate to `http://127.0.0.1:8000/` to experience the magic! 
+You can also go to the website. The link is provided in the description.
