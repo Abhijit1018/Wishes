@@ -1,0 +1,280 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>A Special Wish For You</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Roboto:wght@300&display=swap');
+
+        body {
+            margin: 0;
+            font-family: 'Roboto', sans-serif;
+            color: #f0e68c;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            overflow: hidden;
+            text-align: center;
+            background: linear-gradient(-45deg, #0a0a2a, #2a0a3a, #0a2a2a, #2a2a0a);
+            background-size: 400% 400%;
+            animation: gradientBG 15s ease infinite;
+        }
+        
+        @keyframes gradientBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        #bg-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+        }
+
+        .container {
+            background: rgba(0, 0, 0, 0.4);
+            padding: 40px;
+            border-radius: 15px;
+            box-shadow: 0 0 35px rgba(240, 230, 140, 0.4);
+            max-width: 600px;
+            z-index: 1;
+        }
+
+        h1 {
+            font-family: 'Playfair Display', serif;
+            color: #ffd700;
+            font-size: 2.5em;
+        }
+
+        p, label {
+            font-size: 1.2em;
+            line-height: 1.6;
+        }
+
+        form {
+            margin-top: 20px;
+        }
+
+        input[type="text"] {
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid #ffd700;
+            background: #1a1a3a;
+            color: #f0e68c;
+            font-size: 1em;
+            margin-right: 10px;
+        }
+
+        button {
+            padding: 10px 20px;
+            border-radius: 5px;
+            border: none;
+            background-color: #ffd700;
+            color: #0a0a2a;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        button:hover {
+            background-color: #f0e68c;
+        }
+
+        .wish-section {
+            margin-top: 30px;
+        }
+        
+        select {
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid #ffd700;
+            background: #1a1a3a;
+            color: #f0e68c;
+            font-size: 1em;
+            margin-right: 10px;
+        }
+
+        .buttons-container {
+            margin-top: 30px;
+        }
+
+        .fade-in {
+            animation: fadeIn 2s ease-in-out;
+        }
+
+        .fade-in-delay-1 {
+            animation: fadeIn 2s ease-in-out 1s forwards;
+            opacity: 0;
+        }
+
+        .fade-in-delay-2 {
+            animation: fadeIn 2s ease-in-out 2s forwards;
+            opacity: 0;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .fade-out {
+            animation: fadeOut 1s ease-in-out forwards;
+        }
+
+        @keyframes fadeOut {
+            from { opacity: 1; transform: translateY(0); }
+            to { opacity: 0; transform: translateY(-20px); }
+        }
+
+        #mute-btn {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(255, 215, 0, 0.5);
+            border: none;
+            color: #0a0a2a;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            font-size: 20px;
+            cursor: pointer;
+            z-index: 100;
+        }
+
+        .joke {
+            margin-top: 20px;
+            font-style: italic;
+            opacity: 0.8;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="bg-canvas"></canvas>
+    <div class="container">
+        {% if show_wish %}
+            <h1 class="fade-in">A Special Wish For You, {{ name }}!</h1>
+            <div class="wish-section">
+                <p id="blessing" class="fade-in-delay-1">{{ blessing }}</p>
+                <p id="joke-intro" class="joke fade-in-delay-2">And here's a little joke to make you smile:</p>
+                <p id="joke" class="joke fade-in-delay-2">"{{ joke }}"</p>
+            </div>
+            <div class="buttons-container fade-in-delay-2">
+                <button id="wish-again-btn" data-theme="{{ theme }}">Wish Again</button>
+                <button id="share-btn">Share Wish</button>
+            </div>
+        {% else %}
+            <h1>Who is this special person?</h1>
+            <p>Enter your name to receive a special wish.</p>
+            <form method="post">
+                {% csrf_token %}
+                <input type="text" name="name" placeholder="Your Name" required>
+                <select name="theme">
+                    <option value="classic">Classic</option>
+                    <option value="tech">Tech</option>
+                    <option value="animals">Animals</option>
+                </select>
+                <button type="submit">Reveal My Wish</button>
+            </form>
+        {% endif %}
+    </div>
+
+    <audio id="bg-music" loop>
+        <source src="{% static 'audio/mystical-background.mp3' %}" type="audio/mpeg">
+    </audio>
+    <audio id="chime-sound">
+        <source src="{% static 'audio/chime.mp3' %}" type="audio/mpeg">
+    </audio>
+    <audio id="whoosh-sound">
+        <source src="{% static 'audio/whoosh.mp3' %}" type="audio/mpeg">
+    </audio>
+
+    <button id="mute-btn">🔊</button>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="{% static 'js/animation.js' %}"></script>
+    <script>
+        const bgMusic = document.getElementById('bg-music');
+        const chimeSound = document.getElementById('chime-sound');
+        const whooshSound = document.getElementById('whoosh-sound');
+        const muteBtn = document.getElementById('mute-btn');
+        let isMuted = false;
+
+        function playMusic() {
+            bgMusic.play().catch(e => console.log("Audio play was blocked by the browser."));
+            document.body.removeEventListener('click', playMusic);
+        }
+
+        document.body.addEventListener('click', playMusic);
+
+        muteBtn.addEventListener('click', () => {
+            isMuted = !isMuted;
+            bgMusic.muted = isMuted;
+            chimeSound.muted = isMuted;
+            whooshSound.muted = isMuted;
+            muteBtn.textContent = isMuted ? '🔇' : '🔊';
+        });
+
+        // Play chime sound when wish appears
+        if (!isMuted) chimeSound.play();
+
+        const shareBtn = document.getElementById('share-btn');
+        if(shareBtn) {
+            shareBtn.addEventListener('click', function() {
+                html2canvas(document.body, {
+                    useCORS: true, // Needed for cross-origin images (like fonts)
+                    allowTaint: true, // Needed for the WebGL canvas
+                    backgroundColor: null, // Use the actual background
+                }).then(canvas => {
+                    const link = document.createElement('a');
+                    link.download = 'my-special-wish.png';
+                    link.href = canvas.toDataURL('image/png');
+                    link.click();
+                });
+            });
+        }
+
+        document.getElementById('wish-again-btn').addEventListener('click', function() {
+            const theme = this.dataset.theme;
+            const blessingElem = document.getElementById('blessing');
+            const jokeElem = document.getElementById('joke');
+
+            // Play whoosh sound
+            if (!isMuted) whooshSound.play();
+
+            // Fade out
+            blessingElem.classList.add('fade-out');
+            jokeElem.classList.add('fade-out');
+
+            setTimeout(() => {
+                fetch(`/get-new-wish/?theme=${theme}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        // Update text
+                        blessingElem.textContent = data.blessing;
+                        jokeElem.textContent = `"${data.joke}"`;
+
+                        // Fade in
+                        blessingElem.classList.remove('fade-out');
+                        jokeElem.classList.remove('fade-out');
+                        blessingElem.classList.add('fade-in');
+                        jokeElem.classList.add('fade-in');
+
+                        // Clean up animation classes
+                        setTimeout(() => {
+                            blessingElem.classList.remove('fade-in');
+                            jokeElem.classList.remove('fade-in');
+                        }, 2000);
+                    });
+            }, 1000); // Wait for fade-out to complete
+        });
+    </script>
+</body>
+</html> 
